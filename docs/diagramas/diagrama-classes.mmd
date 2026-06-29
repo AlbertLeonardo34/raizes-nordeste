@@ -1,0 +1,97 @@
+classDiagram
+    class Usuario {
+        +UUID id
+        +String nome
+        +String email
+        -String senha
+        +Perfil perfil
+        +Boolean ativo
+    }
+    class Cliente {
+        +UUID id
+        +String telefone
+        +Date dataNascimento
+        +Boolean consentimentoLGPD
+        +Date dataConsentimento
+    }
+    class Unidade {
+        +UUID id
+        +String nome
+        +String cidade
+        +String estado
+        +String endereco
+        +Boolean ativa
+    }
+    class Produto {
+        +UUID id
+        +String nome
+        +Decimal preco
+        +String categoria
+        +Boolean disponivel
+        +Boolean sazonal
+    }
+    class EstoqueUnidade {
+        +UUID id
+        +Int quantidade
+        +verificarDisponibilidade(qtd) Boolean
+    }
+    class MovimentacaoEstoque {
+        +UUID id
+        +TipoMovimentacao tipo
+        +Int quantidade
+        +String motivo
+    }
+    class Pedido {
+        +UUID id
+        +CanalPedido canalPedido
+        +StatusPedido status
+        +Decimal total
+        +String observacoes
+        +calcularTotal() Decimal
+        +atualizarStatus(novoStatus)
+    }
+    class ItemPedido {
+        +UUID id
+        +Int quantidade
+        +Decimal precoUnitario
+        +Decimal subtotal
+    }
+    class Pagamento {
+        +UUID id
+        +String formaPagamento
+        +StatusPagamento status
+        +Decimal valorTotal
+        +String gatewayId
+        +processar() StatusPagamento
+    }
+    class Fidelidade {
+        +UUID id
+        +Int pontos
+        +adicionarPontos(qtd)
+        +resgatarPontos(qtd) Boolean
+    }
+    class HistoricoFidelidade {
+        +UUID id
+        +Int pontos
+        +String descricao
+    }
+    class AuditoriaAcao {
+        +UUID id
+        +String acao
+        +Json detalhes
+        +String ip
+    }
+
+    Usuario "1" -- "0..1" Cliente
+    Usuario "1" -- "0..*" AuditoriaAcao
+    Cliente "1" -- "0..*" Pedido
+    Cliente "1" -- "0..1" Fidelidade
+    Unidade "1" -- "0..*" EstoqueUnidade
+    Unidade "1" -- "0..*" Pedido
+    Produto "1" -- "0..*" EstoqueUnidade
+    Produto "1" -- "0..*" ItemPedido
+    EstoqueUnidade "1" -- "0..*" MovimentacaoEstoque
+    Pedido "1" -- "1..*" ItemPedido
+    Pedido "1" -- "0..1" Pagamento
+    Pedido "0..1" -- "0..*" AuditoriaAcao
+    Fidelidade "1" -- "0..*" HistoricoFidelidade

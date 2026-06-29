@@ -1,0 +1,105 @@
+erDiagram
+    USUARIO ||--o| CLIENTE : possui
+    USUARIO ||--o{ AUDITORIA_ACAO : executa
+    CLIENTE ||--o{ PEDIDO : realiza
+    CLIENTE ||--o| FIDELIDADE : possui
+    UNIDADE ||--o{ ESTOQUE_UNIDADE : mantem
+    UNIDADE ||--o{ PEDIDO : atende
+    PRODUTO ||--o{ ESTOQUE_UNIDADE : eh_estocado_em
+    PRODUTO ||--o{ ITEM_PEDIDO : eh_vendido_em
+    ESTOQUE_UNIDADE ||--o{ MOVIMENTACAO_ESTOQUE : registra
+    PEDIDO ||--|{ ITEM_PEDIDO : contem
+    PEDIDO ||--o| PAGAMENTO : gera
+    PEDIDO ||--o{ AUDITORIA_ACAO : gera_registro
+    FIDELIDADE ||--o{ HISTORICO_FIDELIDADE : acumula
+
+    USUARIO {
+        uuid id PK
+        string nome
+        string email
+        string senha
+        enum perfil
+        boolean ativo
+    }
+    CLIENTE {
+        uuid id PK
+        uuid usuarioId FK
+        string telefone
+        date dataNascimento
+        boolean consentimentoLGPD
+        date dataConsentimento
+    }
+    UNIDADE {
+        uuid id PK
+        string nome
+        string cidade
+        string estado
+        string endereco
+        boolean ativa
+    }
+    PRODUTO {
+        uuid id PK
+        string nome
+        string descricao
+        decimal preco
+        string categoria
+        boolean disponivel
+        boolean sazonal
+    }
+    ESTOQUE_UNIDADE {
+        uuid id PK
+        uuid unidadeId FK
+        uuid produtoId FK
+        int quantidade
+    }
+    MOVIMENTACAO_ESTOQUE {
+        uuid id PK
+        uuid estoqueId FK
+        enum tipo
+        int quantidade
+        string motivo
+    }
+    PEDIDO {
+        uuid id PK
+        uuid clienteId FK
+        uuid unidadeId FK
+        enum canalPedido
+        enum status
+        decimal total
+        string observacoes
+    }
+    ITEM_PEDIDO {
+        uuid id PK
+        uuid pedidoId FK
+        uuid produtoId FK
+        int quantidade
+        decimal precoUnitario
+        decimal subtotal
+    }
+    PAGAMENTO {
+        uuid id PK
+        uuid pedidoId FK
+        string formaPagamento
+        enum status
+        decimal valorTotal
+        string gatewayId
+    }
+    FIDELIDADE {
+        uuid id PK
+        uuid clienteId FK
+        int pontos
+    }
+    HISTORICO_FIDELIDADE {
+        uuid id PK
+        uuid fidelidadeId FK
+        int pontos
+        string descricao
+    }
+    AUDITORIA_ACAO {
+        uuid id PK
+        uuid usuarioId FK
+        uuid pedidoId FK
+        string acao
+        json detalhes
+        string ip
+    }

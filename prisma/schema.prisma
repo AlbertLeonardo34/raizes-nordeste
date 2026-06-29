@@ -1,0 +1,239 @@
+// ================================================
+// RAÍZES DO NORDESTE — Prisma Schema (DER)
+// ================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL")
+}
+
+// ---- ENUMS ----
+
+enum Perfil {
+  ADMIN
+  GERENTE
+  ATENDENTE
+  COZINHA
+  CLIENTE
+}
+
+enum CanalPedido {
+  APP
+  TOTEM
+  BALCAO
+  PICKUP
+  WEB
+}
+
+enum StatusPedido {
+  AGUARDANDO_PAGAMENTO
+  PAGO
+  EM_PREPARO
+  PRONTO
+  ENTREGUE
+  CANCELADO
+}
+
+enum StatusPagamento {
+  PENDENTE
+  APROVADO
+  RECUSADO
+  ESTORNADO
+}
+
+enum TipoMovimentacao {
+  ENTRADA
+  SAIDA
+}
+
+// ---- MODELS ----
+
+model Usuario {
+  id        String   @id @default(uuid())
+  nome      String
+  email     String   @unique
+  senha     String
+  perfil    Perfil   @default(CLIENTE)
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cliente         Cliente?
+  auditoriasAcoes AuditoriaAcao[]
+
+  @@map("usuarios")
+}
+
+model Cliente {
+  id                String    @id @default(uuid())
+  usuarioId         String    @unique
+  telefone          String?
+  dataNascimento    DateTime?
+  consentimentoLGPD Boolean   @default(false)
+  dataConsentimento DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  usuario    Usuario      @relation(fields: [usuarioId], references: [id])
+  pedidos    Pedido[]
+  fidelidade Fidelidade?
+
+  @@map("clientes")
+}
+
+model Unidade {
+  id        String   @id @default(uuid())
+  nome      String
+  cidade    String
+  estado    String
+  endereco  String
+  ativa     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  estoques EstoqueUnidade[]
+  pedidos  Pedido[]
+
+  @@map("unidades")
+}
+
+model Produto {
+  id         String   @id @default(uuid())
+  nome       String
+  descricao  String?
+  preco      Decimal  @db.Decimal(10, 2)
+  categoria  String
+  disponivel Boolean  @default(true)
+  sazonal    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  estoques    EstoqueUnidade[]
+  itensPedido ItemPedido[]
+
+  @@map("produtos")
+}
+
+model EstoqueUnidade {
+  id         String   @id @default(uuid())
+  unidadeId  String
+  produtoId  String
+  quantidade Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  unidade       Unidade               @relation(fields: [unidadeId], references: [id])
+  produto       Produto               @relation(fields: [produtoId], references: [id])
+  movimentacoes MovimentacaoEstoque[]
+
+  @@unique([unidadeId, produtoId])
+  @@map("estoque_unidades")
+}
+
+model MovimentacaoEstoque {
+  id        String           @id @default(uuid())
+  estoqueId String
+  tipo      TipoMovimentacao
+  quantidade Int
+  motivo    String?
+  createdAt DateTime         @default(now())
+
+  estoque EstoqueUnidade @relation(fields: [estoqueId], references: [id])
+
+  @@map("movimentacoes_estoque")
+}
+
+model Pedido {
+  id          String       @id @default(uuid())
+  clienteId   String
+  unidadeId   String
+  canalPedido CanalPedido
+  status      StatusPedido @default(AGUARDANDO_PAGAMENTO)
+  total       Decimal      @db.Decimal(10, 2)
+  observacoes String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  cliente   Cliente        @relation(fields: [clienteId], references: [id])
+  unidade   Unidade        @relation(fields: [unidadeId], references: [id])
+  itens     ItemPedido[]
+  pagamento Pagamento?
+  auditoria AuditoriaAcao[]
+
+  @@map("pedidos")
+}
+
+model ItemPedido {
+  id            String  @id @default(uuid())
+  pedidoId      String
+  produtoId     String
+  quantidade    Int
+  precoUnitario Decimal @db.Decimal(10, 2)
+  subtotal      Decimal @db.Decimal(10, 2)
+
+  pedido  Pedido  @relation(fields: [pedidoId], references: [id])
+  produto Produto @relation(fields: [produtoId], references: [id])
+
+  @@map("itens_pedido")
+}
+
+model Pagamento {
+  id             String          @id @default(uuid())
+  pedidoId       String          @unique
+  formaPagamento String
+  status         StatusPagamento @default(PENDENTE)
+  valorTotal     Decimal         @db.Decimal(10, 2)
+  gatewayId      String?
+  gatewayResposta Json?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  pedido Pedido @relation(fields: [pedidoId], references: [id])
+
+  @@map("pagamentos")
+}
+
+model Fidelidade {
+  id        String   @id @default(uuid())
+  clienteId String   @unique
+  pontos    Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cliente   Cliente               @relation(fields: [clienteId], references: [id])
+  historico HistoricoFidelidade[]
+
+  @@map("fidelidades")
+}
+
+model HistoricoFidelidade {
+  id           String   @id @default(uuid())
+  fidelidadeId String
+  pontos       Int
+  descricao    String
+  createdAt    DateTime @default(now())
+
+  fidelidade Fidelidade @relation(fields: [fidelidadeId], references: [id])
+
+  @@map("historico_fidelidade")
+}
+
+model AuditoriaAcao {
+  id        String   @id @default(uuid())
+  usuarioId String?
+  pedidoId  String?
+  acao      String
+  detalhes  Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  usuario Usuario? @relation(fields: [usuarioId], references: [id])
+  pedido  Pedido?  @relation(fields: [pedidoId], references: [id])
+
+  @@map("auditoria_acoes")
+}

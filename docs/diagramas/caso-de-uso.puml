@@ -1,0 +1,71 @@
+@startuml CasoDeUso
+left to right direction
+skinparam packageStyle rectangle
+
+actor Visitante
+actor "Usuário Autenticado" as UsuarioAutenticado
+actor "Funcionário da Unidade" as Funcionario
+actor Cliente
+actor Atendente
+actor Cozinha
+actor Gerente
+actor Admin
+
+Cliente --|> UsuarioAutenticado
+Funcionario --|> UsuarioAutenticado
+Atendente --|> Funcionario
+Cozinha --|> Funcionario
+Gerente --|> Atendente
+Admin --|> Gerente
+
+rectangle "API Raízes do Nordeste" {
+  usecase "Registrar-se" as UC1
+  usecase "Login" as UC2
+  usecase "Ver Perfil" as UC3
+  usecase "Listar Unidades" as UC4
+  usecase "Ver Cardápio por Unidade" as UC5
+  usecase "Criar Pedido" as UC6
+  usecase "Listar Pedidos" as UC7
+  usecase "Buscar Pedido por ID" as UC8
+  usecase "Atualizar Status do Pedido" as UC9
+  usecase "Consultar Estoque por Unidade" as UC10
+  usecase "Consultar Saldo de Produto" as UC11
+  usecase "Movimentar Estoque" as UC12
+  usecase "Consultar Fidelidade" as UC13
+  usecase "Resgatar Pontos de Fidelidade" as UC14
+}
+
+Visitante --> UC1
+Visitante --> UC2
+Visitante --> UC4
+Visitante --> UC5
+
+UsuarioAutenticado --> UC3
+UsuarioAutenticado --> UC7
+UsuarioAutenticado --> UC8
+
+Funcionario --> UC9
+
+Atendente --> UC10
+Atendente --> UC11
+
+Gerente --> UC12
+
+Cliente --> UC6
+Cliente --> UC13
+Cliente --> UC14
+
+note right of UC8
+  CLIENTE só visualiza
+  os próprios pedidos
+  (regra aplicada na camada
+  de aplicação)
+end note
+
+note right of UC13
+  CLIENTE só consulta a
+  própria fidelidade;
+  Gerente/Admin podem
+  consultar qualquer cliente
+end note
+@enduml
