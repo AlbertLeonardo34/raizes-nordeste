@@ -1,0 +1,66 @@
+flowchart LR
+    subgraph Atores
+        Visitante
+        Cliente
+        Atendente
+        Cozinha
+        Gerente
+        Admin
+    end
+
+    subgraph API["API Raízes do Nordeste"]
+        UC1[Registrar-se]
+        UC2[Login]
+        UC3[Ver Perfil]
+        UC4[Listar Unidades]
+        UC5[Ver Cardápio por Unidade]
+        UC6[Criar Pedido]
+        UC7[Listar Pedidos]
+        UC8["Buscar Pedido por ID (CLIENTE só vê os próprios)"]
+        UC9[Atualizar Status do Pedido]
+        UC10[Consultar Estoque por Unidade]
+        UC11[Consultar Saldo de Produto]
+        UC12[Movimentar Estoque]
+        UC13["Consultar Fidelidade (CLIENTE só vê a própria)"]
+        UC14[Resgatar Pontos de Fidelidade]
+    end
+
+    Visitante --> UC1
+    Visitante --> UC2
+    Visitante --> UC4
+    Visitante --> UC5
+
+    Cliente --> UC3
+    Cliente --> UC6
+    Cliente --> UC7
+    Cliente --> UC8
+    Cliente --> UC13
+    Cliente --> UC14
+
+    Atendente --> UC3
+    Atendente --> UC7
+    Atendente --> UC8
+    Atendente --> UC9
+    Atendente --> UC10
+    Atendente --> UC11
+
+    Cozinha --> UC3
+    Cozinha --> UC7
+    Cozinha --> UC8
+    Cozinha --> UC9
+
+    Gerente --> UC3
+    Gerente --> UC7
+    Gerente --> UC8
+    Gerente --> UC9
+    Gerente --> UC10
+    Gerente --> UC11
+    Gerente --> UC12
+
+    Admin --> UC3
+    Admin --> UC7
+    Admin --> UC8
+    Admin --> UC9
+    Admin --> UC10
+    Admin --> UC11
+    Admin --> UC12
